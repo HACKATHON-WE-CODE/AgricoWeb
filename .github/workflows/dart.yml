@@ -13,7 +13,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: '3.24.2'
           channel: 'stable'
       
       - name: Get dependencies
@@ -27,9 +27,9 @@ jobs:
           args: --severity-threshold=medium
           command: test
       
-      - name: Upload Snyk report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: snyk-scan-results
-          path: snyk-results.json
+      #- name: Upload Snyk report
+        #uses: actions/upload-artifact@v4
+        #if: always()
+        #with:
+          #name: snyk-scan-results
+          #path: snyk-results.json
