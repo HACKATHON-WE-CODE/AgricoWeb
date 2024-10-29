@@ -1,7 +1,8 @@
+"use client";
 
 import { useEffect, useState } from "react";
-import { Product } from "./types";
-import { deleteProduct, getProducts } from "./productService";
+import { Product } from "../lib/types";
+import { deleteProduct, getProducts } from "../lib/productService";
 import Link from "next/link";
 
 const ProductList = () => {

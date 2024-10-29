@@ -1,6 +1,6 @@
 
-import { db } from "../lib/firebase";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "./firebase";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { Product } from "./types";
 
 // [POST: PRODUCT]
@@ -21,6 +21,14 @@ export const getProducts = async (): Promise<Product[]> => {
     products.push({ id: doc.id, ...doc.data() } as Product);
   });
   return products;
+};
+
+// [GET: PRODUCT]
+
+export const getProduct = async (id: string): Promise<Product | null> => {
+  const docRef = doc(db, "products", id);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? ({ id: docSnap.id, ...docSnap.data() } as Product) : null;
 };
 
 // [PUT: PRODUCT]

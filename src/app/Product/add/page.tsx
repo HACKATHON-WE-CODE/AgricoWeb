@@ -1,8 +1,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { addProduct } from "./productService";
-import { Product } from "./types";
+import { addProduct } from "../../lib/productService";
+import { Product } from "../../lib/types";
 
 const AddProduct = () => {
   const [product, setProduct] = useState<Product>({ name: "", price: 0 });

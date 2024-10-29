@@ -1,8 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Product } from "./types";
-import { updateProduct, getProducts } from "./productService";
+import { Product } from "../../lib/types";
+import { updateProduct, getProducts } from "../../lib/productService";
 
 const EditProduct = () => {
   const [product, setProduct] = useState<Product | null>(null);

@@ -1,15 +1,11 @@
 
-import Link from "next/link";
 
-const Home = () => {
+export default function HomePage() {
   return (
     <div>
-      <h1>Bienvenue</h1>
-      <Link href="/signup">Inscription</Link>
-      <br />
-      <Link href="/login">Connexion</Link>
+      <h1>Bienvenue sur l'application de gestion des produits</h1>
+      <p>Utilisez les liens pour naviguer dans l'application.</p>
     </div>
   );
-};
+}
 
-export default Home;
