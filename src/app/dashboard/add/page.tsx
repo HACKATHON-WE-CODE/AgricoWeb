@@ -14,7 +14,7 @@ const AddFarmerPage = () => {
   const [cropType, setCropType] = useState('');
   const router = useRouter();
 
-  const handleAddFarmer = async (e: { preventDefault: () => void; }) => {
+  const handleAddFarmer = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const newFarmer = {
@@ -24,7 +24,7 @@ const AddFarmerPage = () => {
         address,
         farmSize,
         cropType,
-        registrationDate: new Date(),
+        registrationDate: new Date().toISOString(),
       };
 
       console.log("Données à envoyer :", newFarmer);
@@ -33,8 +33,7 @@ const AddFarmerPage = () => {
       console.log("Agriculteur ajouté avec succès");
       router.push('/dashboard');
     } catch (error) {
-      console.error("Erreur lors de l'ajout de l'agriculteur :", error.message);
-     
+      console.error("Erreur lors de l'ajout de l'agriculteur :", error);
     }
   };
 
@@ -111,3 +110,4 @@ const AddFarmerPage = () => {
 };
 
 export default AddFarmerPage;
+    
