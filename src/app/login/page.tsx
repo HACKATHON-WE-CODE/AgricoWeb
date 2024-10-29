@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '@/app/lib/firebase';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from 'next/navigation';
+import { onAuthStateChanged } from "firebase/auth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,16 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(''); 
   const router = useRouter();
+
+  // Vérifier si l'utilisateur est déjà connecté
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push('/dashboard'); // Rediriger vers le dashboard si connecté
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
   const handleLogin = async () => {
     setLoading(true);
