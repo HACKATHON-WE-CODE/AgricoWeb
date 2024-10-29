@@ -1,45 +1,48 @@
 "use client"
-import { useState, FormEvent } from "react";
-import { auth } from "../lib/firebase";
+import React, { useState } from 'react';
+import { auth } from '@/app/lib/firebase';
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-const Login: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     try {
-      await auth.signInWithEmailAndPassword(email, password);
-      console.log("Connexion réussie");
-    } catch (err: any) {
-      setError(err.message);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Connexion réussie:", userCredential.user);
+    } catch (error) {
+      console.error("Erreur lors de la connexion :", error);
     }
   };
 
   return (
-    <div>
-      <h1>Connexion</h1>
-      <form onSubmit={handleLogin}>
-        <input
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Connexion</h2>
+        <input 
           type="email"
-          placeholder="Adresse e-mail"
+          className="w-full p-3 border border-gray-300 rounded mb-4"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
         />
-        <input
+        <input 
           type="password"
+          className="w-full p-3 border border-gray-300 rounded mb-4"
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
-        <button type="submit">Se connecter</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <button 
+          onClick={handleLogin}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition duration-200"
+        >
+          Se connecter
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Login;
+export default LoginPage;
