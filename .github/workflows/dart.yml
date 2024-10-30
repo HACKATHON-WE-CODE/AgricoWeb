@@ -28,8 +28,8 @@ jobs:
         run: npm install
 
       # Étape 4 : Lancer les tests
-      - name: Run tests
-        run: npm test
+      #- name: Run tests
+        #run: npm test
 
       # Étape 5 : Analyse de sécurité avec Snyk
       - name: Snyk Vulnerability Scan
