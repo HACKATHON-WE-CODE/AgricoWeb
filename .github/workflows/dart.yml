@@ -1,64 +1,98 @@
-name: Next.js CI/CD
+name: CI/CD AgricoWeb
 
 on:
   push:
-    branches:
-      - main  # Déclenche le workflow sur push vers la branche principale
+    branches: [ main ]
   pull_request:
-    branches:
-      - main  # Déclenche également sur les pull requests vers main
+    branches: [ main ]
 
 jobs:
-  build_and_deploy:
+  dependance:
     runs-on: ubuntu-latest
-
     steps:
-      # Étape 1 : Vérifier le code source
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Étape 2 : Configurer Node.js pour Next.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # Vérification du code source
+      - uses: actions/checkout@v3
         with:
-          node-version: '16'
+          fetch-depth: 0
 
-      # Étape 3 : Installer les dépendances
+      # Afficher la structure des répertoires (optionnel)
+      - name: Debug - Show directory structure
+        run: |
+          echo "Current directory: $PWD"
+          echo "Directory content:"
+          ls -la
+          echo "Full directory tree:"
+          tree -a || (apt-get update && apt-get install -y tree && tree -a)
+          
+      # Configuration de Node.js pour Next.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Installer les dépendances
       - name: Install dependencies
         run: npm install
 
-      # Étape 4 : Scan de sécurité avec Snyk pour vulnérabilités medium et high
-      - name: Snyk Vulnerability Scan (Medium & High Only)
+  snyk-security:
+    runs-on: ubuntu-latest
+    needs: dependance
+    steps:
+      # Vérification du code source
+      - uses: actions/checkout@v3
+      
+      # Configuration de Node.js pour Snyk
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+        
+      # Exécuter Snyk pour vérifier les vulnérabilités (medium et high uniquement)
+      - name: Run Snyk to check vulnerability 
         uses: snyk/actions/node@master
+        continue-on-error: true 
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test --severity-threshold=medium --json > snyk_report.json
-        continue-on-error: true
-
-      # Étape 5 : Afficher le rapport Snyk dans les logs (optionnel)
-      - name: Display Snyk Report
-        if: always()  # Affiche le rapport même si des vulnérabilités sont trouvées
-        run: cat snyk_report.json
-
-      # Étape 6 : Enregistrer le rapport comme artefact GitHub
-      - name: Upload Snyk Report
+          args: test --severity-threshold=medium --json-file-output=snyk-result.json
+          
+      # Générer un rapport HTML Snyk
+      - name: Generate Snyk HTML report
         if: always()
-        uses: actions/upload-artifact@v3
+        run: | 
+          npm install -g snyk-to-html
+          snyk-to-html -i snyk-result.json -o snyk-report.html
+      
+      # Charger le rapport Snyk comme artefact
+      - name: Upload Snyk report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: snyk-vulnerability-report
-          path: snyk_report.json
+          name: snyk-report
+          path: snyk-report.html
 
-      # Étape 7 : Build Next.js
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    needs: snyk-security
+    steps:
+      # Vérification du code source
+      - uses: actions/checkout@v3
+
+      # Configuration de Node.js pour le build Next.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+        
+      # Installer les dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # Construire l'application Next.js
       - name: Build Next.js Application
         run: npm run build
 
-      # Étape 8 : Lancer des tests Next.js (optionnel)
-      - name: Run Next.js tests
-        run: npm run test
-        continue-on-error: true
-
-      # Étape 9 : Déploiement (exemple avec Vercel)
+      # Déployer l'application (exemple avec Vercel)
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
