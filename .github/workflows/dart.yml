@@ -68,20 +68,6 @@ jobs:
         with:
           name: snyk-report
           path: snyk-report.html
-      
-      # Configuration de Node.js pour Snyk
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-        
-      # Exécuter Snyk pour vérifier les vulnérabilités 
-      - name: Run Snyk to check vulnerability 
-        uses: actions/checkout@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: test --severity-threshold=medium --json-file-output=snyk-result.json
 
   build_and_deploy:
     runs-on: ubuntu-latest
