@@ -1,5 +1,5 @@
 "use client"
-// src/app/signup/page.tsx
+
 import React, { useState } from 'react';
 import { auth } from '@/app/lib/firebase';
 import { createUserWithEmailAndPassword } from "firebase/auth";

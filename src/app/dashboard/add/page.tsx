@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { db } from '@/app/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 const cropOptions = [
@@ -27,6 +27,8 @@ const AddFarmerPage = () => {
   const [selectedCrop, setSelectedCrop] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [gender, setGender] = useState(''); 
+  const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(''); 
@@ -43,8 +45,21 @@ const AddFarmerPage = () => {
     setCropTypes(cropTypes.filter(c => c !== crop));
   };
 
+  const checkIfFarmerExists = async () => {
+    const farmersCollection = collection(db, 'farmers');
+    const emailQuery = query(farmersCollection, where("email", "==", email));
+    const phoneQuery = query(farmersCollection, where("phone", "==", phone));
+
+    const [emailSnapshot, phoneSnapshot] = await Promise.all([
+      getDocs(emailQuery),
+      getDocs(phoneQuery)
+    ]);
+
+    return !emailSnapshot.empty || !phoneSnapshot.empty;
+  };
+
   const handleAddFarmer = async () => {
-    if (!name || !email || !phone || !address || !farmSize || cropTypes.length === 0 || !latitude || !longitude) {
+    if (!name || !email || !phone || !address || !farmSize || cropTypes.length === 0 || !latitude || !longitude || !gender || !photo) {
       setError('Veuillez remplir tous les champs obligatoires.');
       return;
     }
@@ -53,23 +68,39 @@ const AddFarmerPage = () => {
     setLoading(true); 
 
     try {
+      const exists = await checkIfFarmerExists();
+      if (exists) {
+        setError('Un agriculteur avec ce téléphone ou email existe déjà.');
+        return;
+      }
+
       const farmersCollection = collection(db, 'farmers');
-      await addDoc(farmersCollection, {
-        name,
-        email,
-        phone,
-        address,
-        farmSize,
-        cropTypes,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        registrationDate: new Date().toISOString()
-      });
-      setToastMessage('Agriculteur ajouté avec succès !'); 
-      setTimeout(() => {
-        setToastMessage('');
-        router.push('/dashboard');
-      }, 2000); 
+      const reader = new FileReader();
+      reader.readAsDataURL(photo);
+      reader.onloadend = async () => {
+        const base64String = reader.result;
+
+        await addDoc(farmersCollection, {
+          name,
+          email,
+          phone,
+          address,
+          farmSize,
+          cropTypes,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          gender,
+          photo: base64String,
+          registrationDate: new Date().toISOString()
+        });
+        
+        setToastMessage('Agriculteur ajouté avec succès !'); 
+        setTimeout(() => {
+          setToastMessage('');
+          router.push('/dashboard');
+        }, 2000); 
+      };
+      
     } catch (error) {
       console.error("Erreur lors de l'ajout de l'agriculteur :", error);
       setError("Erreur lors de l'ajout de l'agriculteur, veuillez réessayer.");
@@ -123,7 +154,30 @@ const AddFarmerPage = () => {
           onChange={(e) => setFarmSize(e.target.value)}
         />
         
- 
+  
+        <div className="mb-4">
+          <label className="block mb-2">Sexe :</label>
+          <select 
+            className="w-full p-3 border border-gray-300 rounded"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+          >
+            <option value="">Sélectionner le sexe</option>
+            <option value="Homme">Homme</option>
+            <option value="Femme">Femme</option>
+          </select>
+        </div>
+
+       
+        <div className="mb-4">
+          <input 
+            type="file"
+            accept="image/*"
+            className="w-full p-3 border border-gray-300 rounded"
+            onChange={(e) => setPhoto(e.target.files ? e.target.files[0] : null)}
+          />
+        </div>
+
         <div className="mb-4">
           <select 
             className="w-full p-3 border border-gray-300 rounded"
@@ -145,7 +199,6 @@ const AddFarmerPage = () => {
           </button>
         </div>
 
-      
         <div className="mb-4">
           <h3 className="font-semibold">Cultures Sélectionnées :</h3>
           <ul className="list-disc pl-5">
@@ -192,16 +245,16 @@ const AddFarmerPage = () => {
         )}
       </div>
 
-      
       <style jsx>{`
         .loader {
           border: 4px solid rgba(0, 0, 0, 0.1);
-          border-top: 4px solid blue;
+          border-top: 4px solid rgba(0, 0, 0, 0.5);
           border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }

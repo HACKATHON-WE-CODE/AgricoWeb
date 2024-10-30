@@ -16,7 +16,7 @@ const LoginPage = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.push('/dashboard'); // Rediriger vers le dashboard si connecté
+        router.push('/dashboard'); 
       }
     });
     return () => unsubscribe();

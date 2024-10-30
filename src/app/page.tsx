@@ -1,8 +1,26 @@
-// src/app/page.tsx
 
+
+"use client"; 
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext"; 
 import Link from "next/link";
 
 const Home = () => {
+  const user = useAuth(); 
+  const router = useRouter();
+
+ 
+  useEffect(() => {
+    if (!user) {
+      router.push("/login"); 
+    }
+  }, [user, router]);
+
+
+  if (!user) return null; 
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Bienvenue</h1>
