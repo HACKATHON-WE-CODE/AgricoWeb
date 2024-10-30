@@ -1,37 +1,14 @@
-name: Deploy Next.js Application
+name: Next.js Security Scan
 
 on:
   push:
-    branches:
-      - main  # Déclenchement sur push vers la branche principale
+    branches: [ "main", "develop" ]
   pull_request:
-    branches:
-      - main  # Déclenchement aussi pour les pull requests vers main
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Étape 1 : Vérifier le code source
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Étape 2 : Configurer Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      # Étape 3 : Installer les dépendances
-      - name: Install dependencies
-        run: npm install
-
-      # Étape 4 : Lancer les tests
-      #- name: Run tests
-        #run: npm test
-
-
   security:
     runs-on: ubuntu-latest
     steps:
@@ -43,6 +20,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g snyk
+          npm install -g snyk-to-html
 
       # Désactiver temporairement les vérifications TypeScript strictes pour le build
       - name: Create temporary ESLint config
