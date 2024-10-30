@@ -47,29 +47,13 @@ jobs:
         with:
           node-version: '18'
         
-      # Exécuter Snyk pour vérifier les vulnérabilités (medium et high uniquement)
+      # Exécuter Snyk pour vérifier les vulnérabilités 
       - name: Run Snyk to check vulnerability 
         uses: actions/checkout@master
-        continue-on-error: true 
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: test --severity-threshold=medium --json-file-output=snyk-result.json
-          
-      # Générer un rapport HTML Snyk
-      - name: Generate Snyk HTML report
-        if: always()
-        run: | 
-          npm install -g snyk-to-html
-          snyk-to-html -i snyk-result.json -o snyk-report.html
-      
-      # Charger le rapport Snyk comme artefact
-      - name: Upload Snyk report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: snyk-report
-          path: snyk-report.html
 
   build_and_deploy:
     runs-on: ubuntu-latest
