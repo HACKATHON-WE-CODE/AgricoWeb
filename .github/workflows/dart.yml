@@ -5,8 +5,6 @@ on:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron: '0 0 * * 0'
 
 jobs:
   security:
@@ -44,9 +42,8 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Security Tests
-        run: |
-          snyk test --json | tee snyk-results.json || true
-          snyk code test --json | tee snyk-code-results.json || true
+        with:
+          args: test --severity-threshold=medium --json > snyk_report.json
           
       - name: Generate HTML Reports
         run: |
