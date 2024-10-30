@@ -31,14 +31,28 @@ jobs:
       #- name: Run tests
         #run: npm test
 
-      # Étape 5 : Analyse de sécurité avec Snyk
-      - name: Snyk Vulnerability Scan
+  snyk-security:
+       
+    runs-on: ubuntu-latest
+    needs: build_and_deploy
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+        
+      - name: Run Snyk to check vulnerability 
         uses: snyk/actions/node@master
+        continue-on-error: true 
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: test --severity-threshold=medium --json > snyk_report.json
-        continue-on-error: true
 
       # Étape 6 : Afficher le rapport Snyk dans les logs (optionnel)
       - name: Display Snyk Report
