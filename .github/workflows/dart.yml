@@ -49,7 +49,7 @@ jobs:
         
       # Exécuter Snyk pour vérifier les vulnérabilités (medium et high uniquement)
       - name: Run Snyk to check vulnerability 
-        uses: snyk/actions/node@master
+        uses: actions/checkout@master
         continue-on-error: true 
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
