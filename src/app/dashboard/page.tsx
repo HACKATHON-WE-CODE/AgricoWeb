@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { db } from '../lib/firebase';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image'
+
 
 interface Farmer {
   id: string;
@@ -24,46 +26,56 @@ interface Farmer {
 
 const DashboardPage = () => {
   const [farmers, setFarmers] = useState<Farmer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [user, setUser] = useState<string | null>(null); 
   const [toastMessage, setToastMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [newFarmerId, setNewFarmerId] = useState<string | null>(null); // Nouvel état pour le nouvel agriculteur
+  const [newFarmerId, setNewFarmerId] = useState<string | null>(null); 
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
         fetchFarmers();
       } else {
+        // return push login page
         router.push('/login');
       }
       setLoading(false);
     });
+    
+
+    const fetchFarmers = async () => {
+      try {
+        const farmersCollection = collection(db, 'farmers');
+        const farmersSnapshot = await getDocs(farmersCollection);
+        const farmersList: Farmer[] = farmersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name as string,
+            email: data.email as string,
+            phone: data.phone as string,
+            address: data.address as string,
+            farmSize: data.farmSize as string,
+            cropType: data.cropType as string,
+            registrationDate: formatDate(data.registrationDate as string),
+            imageUrl: data.imageUrl as string,
+            latitude: Number(data.latitude), // Assurez-vous que c'est un nombre
+            longitude: Number(data.longitude) // Assurez-vous que c'est un nombre
+          };
+        });
+        setFarmers(farmersList);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des agriculteurs :", error);
+      }
+    };
 
     return () => unsubscribe();
   }, [router]);
-
-  const fetchFarmers = async () => {
-    try {
-      const farmersCollection = collection(db, 'farmers');
-      const farmersSnapshot = await getDocs(farmersCollection);
-      const farmersList = farmersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        cropType: doc.data().cropType || 'Non spécifié',
-        registrationDate: formatDate(doc.data().registrationDate),
-        latitude: doc.data().latitude,
-        longitude: doc.data().longitude
-      }));
-      setFarmers(farmersList);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des agriculteurs :", error);
-    }
-  };
-
   
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
@@ -103,6 +115,7 @@ const DashboardPage = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddFarmer = async (newFarmer: Farmer) => {
     setFarmers(prev => [...prev, newFarmer]);
     setNewFarmerId(newFarmer.id);
@@ -180,7 +193,7 @@ const DashboardPage = () => {
           <div className="flex space-x-4 overflow-x-auto">
             {farmers.slice(0, 5).map(farmer => (
               <div key={farmer.id} className="flex flex-col items-center">
-                <img
+                <Image
                   src={farmer.imageUrl}
                   alt={farmer.name}
                   className="w-16 h-16 rounded-full border-2 border-gray-400"
